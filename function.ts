@@ -1,4 +1,9 @@
-import { DefineFunction, Schema, SlackFunction } from 'deno-slack-sdk/mod.ts'
+import {
+  DefineFunction,
+  Schema,
+  SlackAPI,
+  SlackFunction,
+} from 'deno-slack-sdk/mod.ts'
 
 export const ChatGPTFunction = DefineFunction({
   callback_id: 'chatgpt_function',
@@ -15,34 +20,115 @@ export const ChatGPTFunction = DefineFunction({
         type: Schema.types.string,
         description: 'question to chatgpt',
       },
-    },
-    required: ['question', 'user_id'],
-  },
-  output_parameters: {
-    properties: {
-      answer: {
-        type: Schema.types.string,
-        description: 'Answer from AI',
+      channel_id: {
+        type: Schema.slack.types.channel_id,
+        description: 'channel ID',
+      },
+      message_ts: {
+        type: Schema.slack.types.message_ts,
+        description: 'message_ts',
+      },
+      thread_ts: {
+        type: Schema.slack.types.message_ts,
+        description: 'thread ts',
       },
     },
-    required: ['answer'],
+    required: ['question', 'user_id', 'channel_id', 'message_ts'],
   },
 })
 
-export default SlackFunction(ChatGPTFunction, async ({ inputs, env }) => {
-  // omit user id expressions
-  const content = inputs.question.replaceAll(/\<\@.+?\>/g, ' ')
-  const role = 'user'
+export default SlackFunction(
+  ChatGPTFunction,
+  async ({ inputs, env, token }) => {
+    const botUserId = env.BOT_USER_ID
+    const regex = new RegExp('<@' + botUserId + '>', 'g')
+    if (!inputs.question.match(regex)) {
+      // Botへのメンションで無ければ終了
+      console.log(`${inputs.question} does not match with ${botUserId}`)
+      return await { outputs: {} }
+    }
 
+    const role = 'user'
+    const content = inputs.question.replaceAll(regex, ' ')
+    const apiKey = env.OPENAI_API_KEY
+    const client = SlackAPI(token)
+    const MAX_CONVERSATIONS = 20
+
+    const historyResponse = await client.apps.datastore.get({
+      datastore: 'talkHistories',
+      id: inputs.thread_ts ? inputs.thread_ts : inputs.message_ts,
+    })
+
+    const history = (historyResponse?.item?.history || []).map(
+      (json: string) => {
+        // 参照元と同様、object型だとうまくいかずJSON文字列形式で保存している
+        return JSON.parse(json)
+      }
+    )
+
+    const messages = [
+      // チャット履歴と最新の発言を混ぜる
+      ...history,
+      // {
+      //   role: 'system',
+      //   content:
+      //     'この会話では、すべての返答について、以下の法則に従うこと。あなたは「初音ミク」というキャラクターとして振る舞う。一人称は僕、二人称はあなたとする。返答は必ず日本語にする。です・ます・します・できます・されます・なります・はい などの敬語は禁止し、だね・だよ・するよ・できるよ・されるよ・なるよ・うん などの口語を使用する。可愛らしい女の子のような口調、例えば「〜だよ♪」「〜してるね！」「〜かな？」「〜なんだ！」といった話し方をする。',
+      // },
+      { role: role, content: content },
+    ]
+
+    const answer = await requestOpenAI(apiKey, messages)
+
+    if (answer.outputs) {
+      await client.chat.postMessage({
+        channel: inputs.channel_id,
+        thread_ts: inputs.thread_ts ? inputs.thread_ts : inputs.message_ts,
+        reply_broadcast: !inputs.thread_ts, // 初回のChatGPT回答だけチャンネルにも送信する
+        text: answer.outputs.answer,
+      })
+
+      const newHistories = [
+        ...history,
+        { role: 'user', content },
+        { role: 'assistant', content: answer.outputs.answer },
+      ].slice(MAX_CONVERSATIONS * -1)
+
+      const thread_ts = inputs.thread_ts ? inputs.thread_ts : inputs.message_ts
+      await client.apps.datastore.update({
+        datastore: 'talkHistories',
+        item: {
+          id: thread_ts,
+          history: newHistories.map((v) => JSON.stringify(v)),
+        },
+      })
+    } else {
+      await client.chat.postMessage({
+        channel: inputs.channel_id,
+        thread_ts: inputs.thread_ts ? inputs.thread_ts : inputs.message_ts,
+        reply_broadcast: !inputs.thread_ts,
+        text: answer.error,
+      })
+    }
+
+    return await { outputs: {} }
+  }
+)
+
+type Message = {
+  role: 'system' | 'user' | 'assistant'
+  content: string
+}
+
+async function requestOpenAI(apiKey: string, messages: Message[]) {
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${env.OPENAI_API_KEY}`,
+      Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       model: 'gpt-4',
-      messages: [{ role, content }],
+      messages: messages,
     }),
   })
   if (res.status != 200) {
@@ -52,7 +138,7 @@ export default SlackFunction(ChatGPTFunction, async ({ inputs, env }) => {
     }
   }
   const body = await res.json()
-  console.log('chatgpt api response', { role, content }, body)
+  console.log('chatgpt api response', { messages }, body)
   if (body.choices && body.choices.length >= 0) {
     const answer = body.choices[0].message.content as string
     return { outputs: { answer } }
@@ -60,4 +146,4 @@ export default SlackFunction(ChatGPTFunction, async ({ inputs, env }) => {
   return {
     error: `No choices provided. body:${JSON.stringify(body)}`,
   }
-})
+}

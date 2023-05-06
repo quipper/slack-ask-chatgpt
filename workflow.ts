@@ -12,6 +12,12 @@ export const ChatGPTWorkflow = DefineWorkflow({
       user_id: {
         type: Schema.slack.types.user_id,
       },
+      message_ts: {
+        type: Schema.slack.types.message_ts,
+      },
+      thread_ts: {
+        type: Schema.slack.types.message_ts,
+      },
       question: {
         type: Schema.types.string,
       },
@@ -21,13 +27,10 @@ export const ChatGPTWorkflow = DefineWorkflow({
 })
 
 // OpenAI をコールする Step
-const chatGPTFunctionStep = ChatGPTWorkflow.addStep(ChatGPTFunction, {
+ChatGPTWorkflow.addStep(ChatGPTFunction, {
   user_id: ChatGPTWorkflow.inputs.user_id,
   question: ChatGPTWorkflow.inputs.question,
-})
-
-// メッセージをチャネルに送信する Step
-ChatGPTWorkflow.addStep(Schema.slack.functions.SendMessage, {
   channel_id: ChatGPTWorkflow.inputs.channel_id,
-  message: chatGPTFunctionStep.outputs.answer,
+  message_ts: ChatGPTWorkflow.inputs.message_ts,
+  thread_ts: ChatGPTWorkflow.inputs.thread_ts,
 })
