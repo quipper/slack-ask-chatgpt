@@ -8,3 +8,18 @@ Refer to the followings:
 - [Slack で ChatGPT との会話履歴をスレッドごとに分けて運用する](https://zenn.dev/lazy/articles/slack-chatgpt-with-thread)
 - [Slack に初音ミクを召喚した(new Slack Platform + ChatGPT API)](https://zenn.dev/leaner_dev/articles/20230309-slack-miku-chatgpt)
 
+## Local development
+
+1. Set Channel ID in trigger files
+1. Create trigger
+1. Prepare .env file
+
+.env
+```
+BOT_USER_ID="U01AAAAAA" # Channel ID
+OPENAI_API_KEY="open-api-key"
+```
+
+```
+slack run
+```
