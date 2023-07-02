@@ -127,7 +127,7 @@ async function requestOpenAI(apiKey: string, messages: Message[]) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-4',
+      model: 'gpt-4-0613',
       messages: messages,
     }),
   })
