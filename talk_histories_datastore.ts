@@ -1,8 +1,8 @@
-import { DefineDatastore, Schema } from 'deno-slack-sdk/mod.ts'
+import { DefineDatastore, Schema } from "deno-slack-sdk/mod.ts";
 
 export const TalkHistoriesDatastore = DefineDatastore({
-  name: 'talkHistories',
-  primary_key: 'id',
+  name: "talkHistories",
+  primary_key: "id",
   attributes: {
     id: { type: Schema.types.string },
     history: {
@@ -13,4 +13,4 @@ export const TalkHistoriesDatastore = DefineDatastore({
       },
     },
   },
-})
+});
