@@ -45,7 +45,6 @@ export default SlackFunction(
     if (!inputs.question.match(regex)) {
       // Botへのメンションで無ければ終了
       console.log(`${inputs.question} does not match with ${botUserId}`);
-      console.log("CI/CD test");
       return await { outputs: {} };
     }
 
