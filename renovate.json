@@ -14,7 +14,9 @@
     {
       "customType": "regex",
       "fileMatch": ["^\\.github/workflows/[^/]+\\.yml$"],
-      "matchStrings": ["deno-version: ['\"](?<currentValue>[\\d.]+)['\"]"]
+      "matchStrings": ["deno-version: ['\"](?<currentValue>[\\d.]+)['\"]"],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "denoland/deno"
     }
   ],
   "packageRules": [
