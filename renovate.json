@@ -1,26 +1,34 @@
 {
-  "extends": ["config:base"],
-  "enabledManagers": ["regex", "github-actions"],
+  "extends": ["config:recommended"],
+  "enabledManagers": ["custom.regex", "github-actions"],
   "labels": ["r:{{depName}}", "r:{{depName}}/{{newVersion}}"],
-  "regexManagers": [
+  "customManagers": [
     {
+      "customType": "regex",
       "fileMatch": ["^import_map.json$"],
       "matchStrings": [
         "\".+?\"\\s*:\\s*\"(?<depName>https://deno.land/.+?)@v?(?<currentValue>\\d+?\\.\\d+?\\.\\d+?).*?\""
       ],
       "datasourceTemplate": "deno"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": ["^\\.github/workflows/[^/]+\\.yml$"],
+      "matchStrings": ["deno-version: ['\"](?<currentValue>[\\d.]+)['\"]"],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "denoland/deno"
     }
   ],
   "packageRules": [
     {
-      "managers": ["regex"],
-      "packagePatterns": [".*"],
-      "updateTypes": ["major"]
+      "matchManagers": ["custom.regex"],
+      "matchPackagePatterns": [".*"],
+      "matchUpdateTypes": ["major"]
     },
     {
-      "managers": ["regex"],
-      "packagePatterns": [".*"],
-      "updateTypes": ["minor", "patch", "pin", "digest"],
+      "matchManagers": ["custom.regex"],
+      "matchPackagePatterns": [".*"],
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true
     }
   ]

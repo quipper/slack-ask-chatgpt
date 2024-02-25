@@ -1,0 +1,45 @@
+name: Slack App Deployment
+
+# 最新のリビジョンを以下のイベント発生時にデプロイします:
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    # 他の Linux ディストリビューションでも OK
+    runs-on: ubuntu-latest
+
+    # デプロイ作業は通常 1 分以内に完了しますが、将来コードベースが大きくなったり、何らか別の処理を同時に行うようになった場合はこの時間を調整します
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Slack CLI は Deno ランタイムを必要とします
+      - name: Install Deno runtime
+        uses: denoland/setup-deno@v1
+        with:
+          # Slack CLI では。最新の stable version の Deno を利用することを推奨します
+          deno-version: v1.41.0
+
+      - name: Cache Slack CLI installation
+        id: cache-slack
+        uses: actions/cache@v3
+        with:
+          path: |
+            /usr/local/bin/slack
+            ~/.slack/bin/slack
+          key: ${{ runner.os }}-slack
+      - name: Install Slack CLI
+        if: steps.cache-slack.outputs.cache-hit != 'true'
+        run: |
+          curl -fsSL https://downloads.slack-edge.com/slack-cli/install.sh | bash
+
+      - name: Deploy the app
+        env:
+          # slack auth token コマンドを実行して所得した xoxp- から始まるトークン
+          # このトークンはデプロイ先の Slack ワークスペース/OrG に紐づいている必要があります
+          SLACK_SERVICE_TOKEN: ${{ secrets.SLACK_SERVICE_TOKEN }}
+        run: |
+          slack deploy -s --token $SLACK_SERVICE_TOKEN
