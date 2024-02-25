@@ -9,6 +9,12 @@
         "\".+?\"\\s*:\\s*\"(?<depName>https://deno.land/.+?)@v?(?<currentValue>\\d+?\\.\\d+?\\.\\d+?).*?\""
       ],
       "datasourceTemplate": "deno"
+    },
+    {
+      "fileMatch": ["^\\.github/workflows/[^/]+\\.yml$"],
+      "matchStrings": [
+        "deno-version: ['\"](?<currentValue>[\\d.]+)['\"]"
+      ]
     }
   ],
   "packageRules": [
