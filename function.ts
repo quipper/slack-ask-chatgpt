@@ -50,7 +50,7 @@ export default SlackFunction(
 
     const role = "user";
     const content = inputs.question.replaceAll(regex, " ");
-    const apiKey = env.OPENAI_API_KEY;
+    const apiKey = env.AZURE_OPENAI_API_KEY;
     const client = SlackAPI(token);
     const MAX_CONVERSATIONS = 20;
 
