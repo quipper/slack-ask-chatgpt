@@ -8,7 +8,7 @@ const messagePostedTrigger: Trigger<typeof ChatGPTWorkflow.definition> = {
   event: {
     event_type: "slack#/events/message_posted",
     channel_ids: [
-      "CHANNEL_ID", // customize your channel id.
+      "C04VA2NC4AC", // #ask-chatgpt-ja
     ],
     filter: {
       version: 1,
