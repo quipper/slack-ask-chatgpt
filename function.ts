@@ -77,7 +77,7 @@ export default SlackFunction(
       { role: role, content: content },
     ];
 
-    const answer = await requestOpenAI(apiKey, messages);
+    const answer = await requestAzureOpenAI(apiKey, messages);
 
     if (answer.outputs) {
       await client.chat.postMessage({
@@ -119,7 +119,7 @@ type Message = {
   content: string;
 };
 
-async function requestOpenAI(apiKey: string, messages: Message[]) {
+async function requestAzureOpenAI(apiKey: string, messages: Message[]) {
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
