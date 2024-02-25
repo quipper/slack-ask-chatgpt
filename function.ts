@@ -128,7 +128,7 @@ async function requestAzureOpenAI(apiKey: string, messages: Message[]) {
     {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        "api-key": apiKey,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
