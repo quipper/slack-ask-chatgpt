@@ -132,7 +132,7 @@ async function requestAzureOpenAI(apiKey: string, messages: Message[]) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4-0613",
+        model: "gpt-4",
         messages: messages,
       }),
     }
