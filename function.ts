@@ -140,7 +140,7 @@ async function requestAzureOpenAI(apiKey: string, messages: Message[]) {
   if (res.status != 200) {
     const body = await res.text();
     return {
-      error: `Failed to call OpenAPI AI. status:${res.status} body:${body}`,
+      error: `Failed to call Azure OpenAI API. status:${res.status} body:${body}`,
     };
   }
   const body = await res.json();
