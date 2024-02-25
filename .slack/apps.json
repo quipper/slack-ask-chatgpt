@@ -1,0 +1,11 @@
+{
+  "apps": {
+    "T0256N200": {
+      "app_id": "A06LAEHPBTQ",
+      "IsDev": false,
+      "team_domain": "quipper",
+      "team_id": "T0256N200"
+    }
+  },
+  "default": "quipper"
+}
