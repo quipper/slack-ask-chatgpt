@@ -50,7 +50,7 @@ export default SlackFunction(
 
     const role = "user";
     const content = inputs.question.replaceAll(regex, " ");
-    const apiKey = env.OPENAI_API_KEY;
+    const apiKey = env.AZURE_OPENAI_API_KEY;
     const client = SlackAPI(token);
     const MAX_CONVERSATIONS = 20;
 
@@ -69,15 +69,10 @@ export default SlackFunction(
     const messages = [
       // チャット履歴と最新の発言を混ぜる
       ...history,
-      // {
-      //   role: 'system',
-      //   content:
-      //     'この会話では、すべての返答について、以下の法則に従うこと。あなたは「初音ミク」というキャラクターとして振る舞う。一人称は僕、二人称はあなたとする。返答は必ず日本語にする。です・ます・します・できます・されます・なります・はい などの敬語は禁止し、だね・だよ・するよ・できるよ・されるよ・なるよ・うん などの口語を使用する。可愛らしい女の子のような口調、例えば「〜だよ♪」「〜してるね！」「〜かな？」「〜なんだ！」といった話し方をする。',
-      // },
       { role: role, content: content },
     ];
 
-    const answer = await requestOpenAI(apiKey, messages);
+    const answer = await requestAzureOpenAI(apiKey, messages);
 
     if (answer.outputs) {
       await client.chat.postMessage({
@@ -119,22 +114,28 @@ type Message = {
   content: string;
 };
 
-async function requestOpenAI(apiKey: string, messages: Message[]) {
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "gpt-4-0613",
-      messages: messages,
-    }),
-  });
+async function requestAzureOpenAI(apiKey: string, messages: Message[]) {
+  const OPENAI_RESOURCE_ID = "ask-chatgpt";
+  const DEPLOYMENT_ID = "gpt-4";
+  const API_VERSION = "2024-02-15-preview";
+  const res = await fetch(
+    `https://${OPENAI_RESOURCE_ID}.openai.azure.com/openai/deployments/${DEPLOYMENT_ID}/chat/completions?api-version=${API_VERSION}`,
+    {
+      method: "POST",
+      headers: {
+        "api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-4",
+        messages: messages,
+      }),
+    }
+  );
   if (res.status != 200) {
     const body = await res.text();
     return {
-      error: `Failed to call OpenAPI AI. status:${res.status} body:${body}`,
+      error: `Failed to call Azure OpenAI API. status:${res.status} body:${body}`,
     };
   }
   const body = await res.json();
