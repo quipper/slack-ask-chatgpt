@@ -7,7 +7,7 @@ export default Manifest({
   description: "workflow",
   icon: "assets/chatgpt.png",
   workflows: [ChatGPTWorkflow],
-  outgoingDomains: ["ask-chatgpt.openai.azure.com"],
+  outgoingDomains: ["ask-chatgpt-east-us.openai.azure.com"],
   datastores: [TalkHistoriesDatastore],
   botScopes: [
     "commands",
