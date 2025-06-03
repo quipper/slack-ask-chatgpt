@@ -116,7 +116,7 @@ type Message = {
 
 async function requestAzureOpenAI(apiKey: string, messages: Message[]) {
   const OPENAI_RESOURCE_ID = "ask-chatgpt-east-us";
-  const DEPLOYMENT_ID = "gpt-4o-mini";
+  const DEPLOYMENT_ID = "gpt-4.1-nano";
   const API_VERSION = "2025-01-01-preview";
   const res = await fetch(
     `https://${OPENAI_RESOURCE_ID}.openai.azure.com/openai/deployments/${DEPLOYMENT_ID}/chat/completions?api-version=${API_VERSION}`,
@@ -127,7 +127,7 @@ async function requestAzureOpenAI(apiKey: string, messages: Message[]) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "gpt-4.1-nano",
         messages: messages,
       }),
     }
