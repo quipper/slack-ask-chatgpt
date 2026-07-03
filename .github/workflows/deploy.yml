@@ -18,7 +18,7 @@ jobs:
 
       # Slack CLI は Deno ランタイムを必要とします
       - name: Install Deno runtime
-        uses: denoland/setup-deno@v1
+        uses: denoland/setup-deno@v2.0.5
         with:
           # Slack CLI では。最新の stable version の Deno を利用することを推奨します
           deno-version: v1.46.2
